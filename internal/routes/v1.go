@@ -5,20 +5,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRouter configures the application routes.
-func SetupRouter(
-	statusHandler handlers.StatusHandler,
-) *gin.Engine {
+// SetupV1 configures /api/v1
+func (r *Router) SetupV1(statusHandler handlers.StatusHandler) {
 	gin.SetMode(gin.DebugMode)
-	r := gin.Default()
 
-	v1 := r.Group("/api/v1")
+	v1 := r.Engine.Group("/api/v1")
 
 	// Uptime Routes
 	uptimeRoutes := v1.Group("/uptime")
 	{
 		uptimeRoutes.GET("/", statusHandler.All)
 	}
-
-	return r
 }

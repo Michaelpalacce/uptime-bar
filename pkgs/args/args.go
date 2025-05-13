@@ -88,8 +88,19 @@ func (a *Args) AddVar(varPtr any, longhand string, shorthand string, defaultValu
 		} else {
 			panic(fmt.Sprintf("%v should have been a bool", defaultValue))
 		}
+	case *int:
+		if dv, ok := defaultValue.(int); ok {
+			if shorthand != "" {
+				fs.IntVar(v, shorthand, dv, message)
+			}
+			if longhand != "" {
+				fs.IntVar(v, longhand, dv, message)
+			}
+		} else {
+			panic(fmt.Sprintf("%v should have been an int", defaultValue))
+		}
 	default:
-		panic("Var must be a pointer of string or bool")
+		panic("Var must be a pointer of string, bool or int")
 	}
 }
 
