@@ -40,7 +40,7 @@ func (c *RunCommand) Args() *options.RunOptions {
 		panic(err)
 	}
 
-	args.AddVar(&runOptions.RouterOptions.Address, "address", "a", "http://127.0.0.1", "Address to listen on.")
+	args.AddVar(&runOptions.RouterOptions.Address, "address", "a", "127.0.0.1", "Address to listen on. Do not specify the schema")
 	args.AddVar(&runOptions.RouterOptions.Port, "port", "p", "9876", "Port to listen on.")
 
 	if err := args.Parse(); err != nil {

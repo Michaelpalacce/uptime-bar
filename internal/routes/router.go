@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/Michaelpalacce/uptime-bar/internal/options"
 	"github.com/gin-gonic/gin"
@@ -13,9 +13,5 @@ type Router struct {
 }
 
 func (r *Router) Run() error {
-	if err := os.Setenv("PORT", r.Args.RouterOptions.Port); err != nil {
-		return err
-	}
-
-	return r.Engine.Run(r.Args.RouterOptions.Address)
+	return r.Engine.Run(fmt.Sprintf("%s:%s", r.Args.RouterOptions.Address, r.Args.RouterOptions.Port))
 }
