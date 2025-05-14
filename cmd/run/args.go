@@ -4,8 +4,8 @@ import (
 	"flag"
 	"os"
 
+	"github.com/Michaelpalacce/gorgs"
 	"github.com/Michaelpalacce/uptime-bar/internal/options"
-	"github.com/Michaelpalacce/uptime-bar/pkgs/args"
 )
 
 var runOptions = &options.RunOptions{
@@ -30,20 +30,20 @@ func (c *RunCommand) Args() *options.RunOptions {
 		return runOptions
 	}
 
-	args, err := args.NewArgs(
+	gorgs, err := gorgs.NewGorgs(
 		os.Args[2:],
-		args.WithExamples(examples),
-		args.WithUsage(usage),
-		args.WithFs(flag.NewFlagSet("run", flag.ExitOnError)),
+		gorgs.WithExamples(examples),
+		gorgs.WithUsage(usage),
+		gorgs.WithFs(flag.NewFlagSet("run", flag.ExitOnError)),
 	)
 	if err != nil {
 		panic(err)
 	}
 
-	args.AddVar(&runOptions.RouterOptions.Address, "address", "a", "127.0.0.1", "Address to listen on. Do not specify the schema")
-	args.AddVar(&runOptions.RouterOptions.Port, "port", "p", "9876", "Port to listen on.")
+	_ = gorgs.AddVar(&runOptions.RouterOptions.Address, "address", "a", "127.0.0.1", "Address to listen on. Do not specify the schema")
+	_ = gorgs.AddVar(&runOptions.RouterOptions.Port, "port", "p", "9876", "Port to listen on.")
 
-	if err := args.Parse(); err != nil {
+	if err := gorgs.Parse(); err != nil {
 		panic(err)
 	}
 
