@@ -42,6 +42,7 @@ func (c *RunCommand) Args() *options.RunOptions {
 
 	_ = gorgs.AddVar(&runOptions.RouterOptions.Address, "address", "a", "127.0.0.1", "Address to listen on. Do not specify the schema")
 	_ = gorgs.AddVar(&runOptions.RouterOptions.Port, "port", "p", "9876", "Port to listen on.")
+	_ = gorgs.AddVar(&runOptions.StatusOptions.ConfigPath, "config", "", "~/.config/uptime-bar/config", "Path to the location of the config")
 
 	if err := gorgs.Parse(); err != nil {
 		panic(err)

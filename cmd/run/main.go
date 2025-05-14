@@ -3,6 +3,7 @@ package run
 import (
 	"github.com/Michaelpalacce/uptime-bar/internal/handlers"
 	"github.com/Michaelpalacce/uptime-bar/internal/routes"
+	"github.com/Michaelpalacce/uptime-bar/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +14,9 @@ func (c *RunCommand) Name() string {
 }
 
 func (c *RunCommand) Run() error {
-	statusHandler := *handlers.NewStatusHandler()
+	statusService := services.StatusService{}
+
+	statusHandler := *handlers.NewStatusHandler(&statusService)
 	router := routes.Router{
 		Args:   c.Args(),
 		Engine: gin.Default(),
