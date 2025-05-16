@@ -8,10 +8,9 @@ import (
 // StatusHandler is the handler for uptime statuses
 type StatusHandler struct {
 	service *services.StatusService
-
-	// preloadedConfig string
 }
 
+// NewStatusHandler returns a new StatusHandler struct
 func NewStatusHandler(service *services.StatusService) *StatusHandler {
 	return &StatusHandler{
 		service: service,

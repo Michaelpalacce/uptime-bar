@@ -1,0 +1,5 @@
+httpStatuses:
+  - name: Dashboard
+    address: https://homepage.sgenov.dev
+    port: 443
+    expectedStatusCodes: 200
