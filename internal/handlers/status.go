@@ -19,4 +19,5 @@ func NewStatusHandler(service *services.StatusService) *StatusHandler {
 
 // GetAll will retrieve the status of all items
 func (h *StatusHandler) All(c *gin.Context) {
+	c.JSON(200, h.service.GetStatusForAll())
 }

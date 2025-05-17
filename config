@@ -1,7 +1,11 @@
 httpStatuses:
   - name: Dashboard
     address: https://homepage.sgenov.dev
-    port: 443
+    expectedStatusCodes:
+      - 200
+    interval: 2s
+  - name: Website
+    address: https://sgenov.dev
     expectedStatusCodes:
       - 200
     interval: 5s

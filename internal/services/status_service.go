@@ -5,18 +5,8 @@ import (
 
 	"github.com/Michaelpalacce/uptime-bar/internal/configuration"
 	"github.com/Michaelpalacce/uptime-bar/pkgs/monitors"
+	"github.com/Michaelpalacce/uptime-bar/pkgs/status"
 )
-
-type Storable interface {
-	Store() any
-}
-
-type Retrievable interface{}
-
-type StorableRetrievable interface {
-	Storable
-	Retrievable
-}
 
 // StatusService is responsible for polling the status of the different services
 type StatusService struct {
@@ -33,7 +23,22 @@ func NewStatusService(configuration *configuration.Configuration) *StatusService
 	return service
 }
 
-func (s *StatusService) GetStatusForAll() {
+// GetStatusForAll will return up and down counter
+// While there is a race condition of up and down status being misreported, because in a split second we may
+// get the old status, this is not a worry due to the nature of our program.
+func (s *StatusService) GetStatusForAll() GetAllStatusResponseBody {
+	body := GetAllStatusResponseBody{}
+	for _, conf := range s.Configuration.HttpStatuses {
+		if conf.State == status.STATE_UP {
+			body.Up++
+		}
+
+		if conf.State == status.STATE_DOWN {
+			body.Down++
+		}
+	}
+
+	return body
 }
 
 // StartStatusWatch is meant to be executed in a goroutine
@@ -50,7 +55,10 @@ func (s *StatusService) StartStatusWatch() {
 			go monitor.Watch(changeChan)
 
 			for {
-				<-changeChan
+				isOperational := <-changeChan
+				if !isOperational {
+					break
+				}
 
 				slog.Info("Change detected", "name", conf.Name, "address", conf.Address, "state", conf.State, "reason", conf.Reason)
 			}

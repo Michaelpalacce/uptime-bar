@@ -16,28 +16,34 @@ type HttpMonitor struct {
 
 // Watch will watch the configured HttpStatus.
 // Make sure to call this in a goroutine
-// The chan will notify if there is an update. The return doesn't matter, just the fact that
-// something was sent is enough
+// The chan will notify if there is an update. if false is given back, then the watch failed
 func (m *HttpMonitor) Watch(statusChan chan bool) {
-	slog.Info("Starting a new http monitor", "name", m.HttpStatus.Name, "address", m.HttpStatus.Address, "port", m.HttpStatus.Port, "interval", m.HttpStatus.Interval)
+	if m.HttpStatus == nil {
+		slog.Error("You created a monitor that does not have a provied HttpStatus")
+		statusChan <- false
+		return
+	}
+
+	slog.Info("Starting a new http monitor", "name", m.HttpStatus.Name, "address", m.HttpStatus.Address, "interval", m.HttpStatus.Interval)
 	t := time.NewTicker(m.HttpStatus.Interval)
 
 	for {
 		<-t.C
-
 		var (
 			expected   bool
 			statusCode int
 			err        error
+			hadUpdate  bool
 		)
 
 		if statusCode, err = m.checkURLStatus(); err != nil {
-			if m.HttpStatus.State != status.STATE_DOWN {
+			if hadUpdate, _ = m.HttpStatus.Patch(
+				status.SetToDown,
+				status.SetReason(fmt.Errorf("%s returned %d. Err was: %w", m.HttpStatus.Address, statusCode, err).Error()),
+			); hadUpdate {
 				statusChan <- true
 			}
 
-			m.HttpStatus.State = status.STATE_DOWN
-			m.HttpStatus.Reason = fmt.Errorf("%s returned %d. Err was: %w", m.HttpStatus.Address, statusCode, err).Error()
 			continue
 		}
 
@@ -46,27 +52,27 @@ func (m *HttpMonitor) Watch(statusChan chan bool) {
 		}
 
 		if !expected {
-			if m.HttpStatus.State != status.STATE_DOWN {
+			if hadUpdate, _ = m.HttpStatus.Patch(
+				status.SetToDown,
+				status.SetReason(fmt.Errorf("%s returned %d, which was not expected", m.HttpStatus.Address, statusCode).Error()),
+			); hadUpdate {
 				statusChan <- true
 			}
 
-			m.HttpStatus.State = status.STATE_DOWN
-			m.HttpStatus.Reason = fmt.Errorf("%s returned %d, which was not expected", m.HttpStatus.Address, statusCode).Error()
 			continue
 		}
 
-		if m.HttpStatus.State != status.STATE_UP {
+		if hadUpdate, _ = m.HttpStatus.Patch(status.SetToUp, status.SetReason(fmt.Sprintf("Status is: %d", statusCode))); hadUpdate {
 			statusChan <- true
 		}
 
-		m.HttpStatus.State = status.STATE_UP
-		m.HttpStatus.Reason = fmt.Sprintf("Status is: %d", statusCode)
+		continue
 	}
 }
 
 func (m *HttpMonitor) checkURLStatus() (int, error) {
 	// Create a custom HTTP client with a timeout
-	client := &http.Client{
+	client := http.Client{
 		Timeout: m.HttpStatus.GetTimeout(),
 	}
 
