@@ -28,7 +28,7 @@ func NewStatusService(configuration *configuration.Configuration) *StatusService
 		Configuration: configuration,
 	}
 
-	go service.WatchStatus()
+	go service.StartStatusWatch()
 
 	return service
 }
@@ -36,24 +36,23 @@ func NewStatusService(configuration *configuration.Configuration) *StatusService
 func (s *StatusService) GetStatusForAll() {
 }
 
-// WatchStatus is meant to be executed in a goroutine
+// StartStatusWatch is meant to be executed in a goroutine
 // It will poll the configured services and get their state
-func (s *StatusService) WatchStatus() {
+// @TODO: On change, update the store
+func (s *StatusService) StartStatusWatch() {
 	for _, conf := range s.Configuration.HttpStatuses {
 		go func() {
 			monitor := monitors.HttpMonitor{
 				HttpStatus: conf,
 			}
 
-			statusChan := make(chan monitors.Change)
-
-			go monitor.Watch(statusChan)
+			changeChan := make(chan bool)
+			go monitor.Watch(changeChan)
 
 			for {
-				change := <-statusChan
-				slog.Info("Change detected", "address", conf.Address, "state", change.Status, "reason", change.Reason)
-				conf.State = change.Status
-				conf.Reason = change.Reason
+				<-changeChan
+
+				slog.Info("Change detected", "name", conf.Name, "address", conf.Address, "state", conf.State, "reason", conf.Reason)
 			}
 		}()
 	}

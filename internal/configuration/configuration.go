@@ -8,7 +8,7 @@ import (
 )
 
 type Configuration struct {
-	HttpStatuses []status.HttpStatus `mapstructure:"httpStatuses"`
+	HttpStatuses []*status.HttpStatus `mapstructure:"httpStatuses"`
 }
 
 // LoadConfiguration will attempt to load the configuration from the config path.
