@@ -30,51 +30,41 @@ func (m *HttpMonitor) Watch(statusChan chan bool) {
 	for {
 		<-t.C
 		var (
-			expected   bool
 			statusCode int
 			err        error
-			hadUpdate  bool
 		)
 
 		if statusCode, err = m.checkURLStatus(); err != nil {
-			if hadUpdate, _ = m.HttpStatus.Patch(
+			if update, _ := m.HttpStatus.Patch(
 				status.SetToDown,
 				status.SetReason(fmt.Errorf("%s returned %d. Err was: %w", m.HttpStatus.Address, statusCode, err).Error()),
-			); hadUpdate {
+			); update {
 				statusChan <- true
 			}
 
 			continue
 		}
 
-		if slices.Contains(m.HttpStatus.ExpectedStatusCodes, statusCode) {
-			expected = true
-		}
-
-		if !expected {
-			if hadUpdate, _ = m.HttpStatus.Patch(
+		if !slices.Contains(m.HttpStatus.ExpectedStatusCodes, statusCode) {
+			if update, _ := m.HttpStatus.Patch(
 				status.SetToDown,
 				status.SetReason(fmt.Errorf("%s returned %d, which was not expected", m.HttpStatus.Address, statusCode).Error()),
-			); hadUpdate {
+			); update {
 				statusChan <- true
 			}
 
 			continue
 		}
 
-		if hadUpdate, _ = m.HttpStatus.Patch(status.SetToUp, status.SetReason(fmt.Sprintf("Status is: %d", statusCode))); hadUpdate {
+		if upddate, _ := m.HttpStatus.Patch(status.SetToUp, status.SetReason(fmt.Sprintf("Status is: %d", statusCode))); upddate {
 			statusChan <- true
 		}
-
-		continue
 	}
 }
 
 func (m *HttpMonitor) checkURLStatus() (int, error) {
 	// Create a custom HTTP client with a timeout
-	client := http.Client{
-		Timeout: m.HttpStatus.GetTimeout(),
-	}
+	client := http.Client{Timeout: m.HttpStatus.GetTimeout()}
 
 	// Send an HTTP GET request
 	resp, err := client.Get(m.HttpStatus.Address)
